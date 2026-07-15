@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0a0b;
+    --bg-elevated: #131316;
+    --bg-card: #17171b;
+    --line: #26262b;
+    --text: #f2f0ea;
+    --muted: #87868c;
+    --amber: #ff7a45;
+    --cyan: #43e5ff;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .grid-backdrop{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+    pointer-events: none;
+  }
+
+  .glow{
+    position: fixed;
+    width: 700px;
+    height: 700px;
+    top: -300px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(255,122,69,0.14) 0%, rgba(67,229,255,0.06) 45%, transparent 70%);
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap{
+    position: relative;
+    z-index: 1;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* NAV */
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo{
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .logo .dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background: var(--amber);
+    box-shadow: 0 0 12px var(--amber);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .nav-right{ display:flex; align-items:center; gap: 14px; }
+  .admin-badge{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    border-radius: 20px;
+    padding: 4px 10px;
+    display:none;
+  }
+  .nav-btn{
+    font-family: var(--mono);
+    font-size: 12px;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .nav-btn:hover{ border-color: var(--cyan); color: var(--text); }
+
+  /* HERO */
+  .hero{ padding: 90px 0 60px; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--amber);
+    letter-spacing: 0.06em;
+    margin-bottom: 20px;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .eyebrow::before{ content:''; width:20px; height:1px; background: var(--amber); }
+  h1{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px;
+    max-width: 780px;
+  }
+  h1 em{
+    font-style: normal;
+    background: linear-gradient(90deg, var(--amber), var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p.lede{
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 540px;
+    margin: 0 0 34px;
+  }
+  .terminal-line{
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--muted);
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  .terminal-line .prompt{ color: var(--cyan); }
+  .cursor{
+    display:inline-block;
+    width: 8px; height: 16px;
+    background: var(--amber);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink{ 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
+
+  .lab-section{ padding: 20px 0 70px; }
+  .section-label{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    display:flex;
+    justify-content: space-between;
+  }
+  .section-label span:last-child{ color: var(--muted); opacity: 0.7; }
+
+  /* ADMIN LOGIN PANEL */
+  .login-panel{
+    display:none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    padding: 22px;
+    margin-bottom: 40px;
+    max-width: 380px;
+  }
+  .login-panel.open{ display:block; }
+  .login-panel .field{ display:flex; flex-direction:column; gap:7px; margin-bottom: 14px; }
+  .login-panel label{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .login-panel input{
+    background: #0e0e10;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .login-panel input:focus{ outline:none; border-color: var(--cyan); }
+  .login-panel .submit-btn{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--bg);
+    background: linear-gradient(90deg, var(--amber), var(--cyan));
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .login-error{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #ff5c5c;
+    margin-top: 8px;
+    display:none;
+  }
+
+  /* ADMIN ADD-APP FORM */
+  .link-form{
+    display:none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    padding: 22px 22px 18px;
+    margin-bottom: 40px;
+  }
+  .link-form.open{ display:block; }
+  .link-row{ display:flex; gap: 16px; align-items: flex-end; }
+  .link-row + .link-row{ margin-top: 16px; }
+  .field{ flex: 1; display:flex; flex-direction: column; gap:7px; }
+  .field-wide{ flex: 2.4; }
+  .field label{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .field label .optional{ color: #55555c; font-size: 10px; }
+  .field input{
+    background: #0e0e10;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .field input::placeholder{ color: #55555c; }
+  .field input:focus{ outline: none; border-color: var(--cyan); }
+  .link-submit{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--bg);
+    background: linear-gradient(90deg, var(--amber), var(--cyan));
+    border: none;
+    border-radius: 6px;
+    padding: 11px 18px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .link-submit:hover{ opacity:0.85; }
+
+  /* APP GRID */
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .card:hover{ transform: translateY(-3px); border-color: #3a3a41; }
+  body.admin-on .card{ cursor: pointer; }
+  body.admin-on .card:hover{ border-color: var(--amber); }
+  .edit-overlay{
+    position: absolute;
+    inset: 0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    background: rgba(10,10,11,0.45);
+  }
+  body.admin-on .edit-overlay{ display:flex; }
+  .card:hover .edit-overlay{ opacity: 1; }
+  .edit-overlay .edit-pill{
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    border: 1px solid var(--amber);
+    background: rgba(10,10,11,0.6);
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+  .card-thumb{
+    aspect-ratio: 16/10;
+    background: #0e0e10;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .card-thumb img{ width:100%; height:100%; object-fit: cover; }
+  .card-thumb .fallback-mark{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--muted);
+    letter-spacing: -0.02em;
+  }
+  .card-thumb .fallback-mark span{ color: var(--amber); }
+  .card-body{ padding: 9px; }
+  .card-head{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .card-title{
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .status-pill{
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.03em;
+    padding: 2px 6px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    color: var(--cyan);
+    background: rgba(67,229,255,0.06);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+  .download-count{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .download-count span{ color: var(--amber); }
+  .card-actions{
+    display:flex;
+    gap: 6px;
+    align-items:center;
+  }
+  .download-btn{
+    flex: 1;
+    text-align:center;
+    text-decoration:none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bg);
+    background: linear-gradient(90deg, var(--amber), var(--cyan));
+    border-radius: 6px;
+    padding: 7px 0;
+  }
+  .download-btn:hover{ opacity: 0.88; }
+  .card-remove{
+    background:none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    cursor:pointer;
+    border-radius: 6px;
+    padding: 7px 8px;
+  }
+  .card-remove:hover{ color: #ff5c5c; border-color: #ff5c5c; }
+
+  .empty-note{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #55555c;
+    text-align:center;
+    padding: 30px 0 6px;
+  }
+
+  /* CONTACT */
+  .contact-card{
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    padding: 28px;
+    display:flex;
+    flex-wrap: wrap;
+    gap: 26px;
+  }
+  .contact-item{ display:flex; flex-direction: column; gap: 6px; }
+  .contact-item .label{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .contact-item a, .contact-item span.value{
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .contact-item a:hover{ color: var(--cyan); }
+
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 26px 0 50px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display:flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 560px){
+    nav{ flex-direction: column; align-items:flex-start; gap: 12px; }
+    footer{ flex-direction: column; gap: 8px; }
+    .link-row{ flex-direction: column; align-items: stretch; }
+  }
+
+  :focus-visible{ outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce){ .dot, .cursor{ animation: none; } }
+</style>
+</head>
+<body>
+
+<div class="grid-backdrop"></div>
+<div class="glow"></div>
+
+<div class="wrap">
+
+  <nav>
+    <div class="logo"><span class="dot"></span> PROTOTYPE LAB</div>
+    <div class="nav-right">
+      <span class="admin-badge" id="adminBadge">ADMIN MODE</span>
+      <button class="nav-btn" id="adminToggleBtn">Admin</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="eyebrow">PERSONAL BUILD LOG</div>
+    <h1>Apps I've built,<br><em>ready to download.</em></h1>
+    <p class="lede">A running shelf of finished prototypes. Grab one, try it out, keep it.</p>
+    <div class="terminal-line"><span class="prompt">$</span> <span id="typedText"></span><span class="cursor"></span></div>
+  </section>
+
+  <section class="lab-section">
+
+    <div class="login-panel" id="loginPanel">
+      <div class="field">
+        <label for="adminPass">admin password</label>
+        <input type="password" id="adminPass" placeholder="••••••••">
+      </div>
+      <button class="submit-btn" id="loginSubmit">log in</button>
+      <div class="login-error" id="loginError">incorrect password</div>
+    </div>
+
+    <form class="link-form" id="linkForm">
+      <div class="section-label"><span id="formLabel">// ADD AN APP</span><span>admin only</span></div>
+      <div class="link-row">
+        <div class="field">
+          <label for="appName">name</label>
+          <input type="text" id="appName" placeholder="e.g. Habit Tracker" required>
+        </div>
+        <div class="field">
+          <label for="appUrl">download / app link</label>
+          <input type="url" id="appUrl" placeholder="https://your-app.com/download" required>
+        </div>
+      </div>
+      <div class="link-row">
+        <div class="field field-wide">
+          <label for="appImage">image address <span class="optional">(optional)</span></label>
+          <input type="url" id="appImage" placeholder="https://your-app.com/preview.png">
+        </div>
+        <button type="submit" class="link-submit" id="formSubmitBtn">＋ add app</button>
+        <button type="button" class="card-remove" id="cancelEditBtn" style="display:none;">cancel</button>
+      </div>
+    </form>
+
+    <div class="section-label"><span>// APPS</span><span id="countStatus">0 available</span></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty-note" id="emptyNote">no apps posted yet — check back soon</div>
+  </section>
+
+  <section class="lab-section">
+    <div class="section-label"><span>// CONTACT</span><span>get in touch</span></div>
+    <div class="contact-card" id="contactCard"></div>
+
+    <form class="link-form" id="contactForm" style="margin-top:18px;">
+      <div class="section-label"><span>// EDIT CONTACT INFO</span><span>admin only</span></div>
+      <div class="link-row">
+        <div class="field">
+          <label for="cName">name</label>
+          <input type="text" id="cName" placeholder="Your Name">
+        </div>
+        <div class="field">
+          <label for="cEmail">email</label>
+          <input type="email" id="cEmail" placeholder="you@example.com">
+        </div>
+      </div>
+      <div class="link-row">
+        <div class="field">
+          <label for="cGithub">github url</label>
+          <input type="url" id="cGithub" placeholder="https://github.com/yourhandle">
+        </div>
+        <div class="field">
+          <label for="cTwitter">twitter / x url</label>
+          <input type="url" id="cTwitter" placeholder="https://x.com/yourhandle">
+        </div>
+      </div>
+      <div class="link-row" style="margin-top:4px;">
+        <button type="submit" class="link-submit">save contact info</button>
+      </div>
+    </form>
+  </section>
+
+  <footer>
+    <div>PROTOTYPE_LAB / v2.0</div>
+    <div>built with care</div>
+  </footer>
+
+</div>
+
+<script>
+  // ====== EDIT THESE TWO THINGS ======
+  const ADMIN_PASSWORD = "changeme"; // client-side only — see note in chat
+  // ===================================
+
+  const STORAGE_KEY = 'protolab_apps';
+  const CONTACT_KEY = 'protolab_contact';
+  let isAdmin = sessionStorage.getItem('protolab_admin') === 'true';
+
+  const DEFAULT_CONTACT = {
+    name: "Your Name",
+    email: "you@example.com",
+    github: "https://github.com/yourhandle",
+    twitter: "https://x.com/yourhandle"
+  };
+
+  function loadContact(){
+    try{ return { ...DEFAULT_CONTACT, ...JSON.parse(localStorage.getItem(CONTACT_KEY)) }; }
+    catch(e){ return DEFAULT_CONTACT; }
+  }
+  function saveContact(c){ localStorage.setItem(CONTACT_KEY, JSON.stringify(c)); }
+
+  function githubHandle(url){
+    try{ return new URL(url).pathname.replace(/^\//,''); }catch(e){ return url; }
+  }
+  function twitterHandle(url){
+    try{ return '@' + new URL(url).pathname.replace(/^\//,''); }catch(e){ return url; }
+  }
+
+  function renderContact(){
+    const c = loadContact();
+    const contactCard = document.getElementById('contactCard');
+    contactCard.innerHTML = `
+      <div class="contact-item">
+        <span class="label">NAME</span>
+        <span class="value">${c.name}</span>
+      </div>
+      <div class="contact-item">
+        <span class="label">EMAIL</span>
+        <a href="mailto:${c.email}">${c.email}</a>
+      </div>
+      <div class="contact-item">
+        <span class="label">GITHUB</span>
+        <a href="${c.github}" target="_blank" rel="noopener noreferrer">github.com/${githubHandle(c.github)}</a>
+      </div>
+      <div class="contact-item">
+        <span class="label">TWITTER / X</span>
+        <a href="${c.twitter}" target="_blank" rel="noopener noreferrer">${twitterHandle(c.twitter)}</a>
+      </div>
+    `;
+
+    // pre-fill the admin edit form
+    document.getElementById('cName').value = c.name;
+    document.getElementById('cEmail').value = c.email;
+    document.getElementById('cGithub').value = c.github;
+    document.getElementById('cTwitter').value = c.twitter;
+  }
+
+  const adminToggleBtn = document.getElementById('adminToggleBtn');
+  const adminBadge = document.getElementById('adminBadge');
+  const loginPanel = document.getElementById('loginPanel');
+  const loginSubmit = document.getElementById('loginSubmit');
+  const adminPass = document.getElementById('adminPass');
+  const loginError = document.getElementById('loginError');
+  const linkForm = document.getElementById('linkForm');
+  const grid = document.getElementById('grid');
+  const emptyNote = document.getElementById('emptyNote');
+  const countStatus = document.getElementById('countStatus');
+
+  function loadApps(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function saveApps(apps){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
+  }
+
+  function domainOf(url){
+    try{ return new URL(url).hostname.replace('www.',''); }
+    catch(e){ return url; }
+  }
+
+  function renderApps(){
+    const apps = loadApps();
+    grid.innerHTML = '';
+    apps.forEach(app => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.position = 'relative';
+      card.setAttribute('data-app-id', app.id);
+
+      const thumbInner = app.image
+        ? `<img src="${app.image}" alt="${app.name}" onerror="this.parentElement.innerHTML='<div class=&quot;fallback-mark&quot;>${app.name.charAt(0).toUpperCase()}<span>.</span></div>'">`
+        : `<div class="fallback-mark">${app.name.charAt(0).toUpperCase()}<span>.</span></div>`;
+
+      card.innerHTML = `
+        <div class="card-thumb">
+          ${thumbInner}
+          <div class="edit-overlay"><span class="edit-pill">✎ click to edit</span></div>
+        </div>
+        <div class="card-body">
+          <div class="card-head">
+            <div class="card-title">${app.name}</div>
+            <div class="status-pill">${domainOf(app.url)}</div>
+          </div>
+          <div class="download-count"><span>${app.downloads || 0}</span> download${(app.downloads === 1) ? '' : 's'}</div>
+          <div class="card-actions">
+            <a class="download-btn" href="${app.url}" target="_blank" rel="noopener noreferrer" data-id="${app.id}">Download</a>
+            ${isAdmin ? `<button class="card-remove" data-id="${app.id}">remove</button>` : ''}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    countStatus.textContent = apps.length + (apps.length === 1 ? ' available' : ' available');
+    emptyNote.style.display = apps.length === 0 ? 'block' : 'none';
+
+    if(isAdmin){
+      grid.querySelectorAll('.card-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const remaining = loadApps().filter(a => String(a.id) !== id);
+          saveApps(remaining);
+          renderApps();
+        });
+      });
+
+      grid.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if(e.target.closest('.download-btn') || e.target.closest('.card-remove')) return;
+          const id = card.getAttribute('data-app-id');
+          const app = loadApps().find(a => String(a.id) === id);
+          if(app) startEdit(app);
+        });
+      });
+    }
+
+    grid.querySelectorAll('.download-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const current = loadApps();
+        const target = current.find(a => String(a.id) === id);
+        if(target){
+          target.downloads = (target.downloads || 0) + 1;
+          saveApps(current);
+          const countEl = btn.closest('.card-body').querySelector('.download-count');
+          if(countEl){
+            countEl.innerHTML = `<span>${target.downloads}</span> download${target.downloads === 1 ? '' : 's'}`;
+          }
+        }
+      });
+    });
+  }
+
+  let editingId = null;
+  const formLabel = document.getElementById('formLabel');
+  const formSubmitBtn = document.getElementById('formSubmitBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  function startEdit(app){
+    editingId = app.id;
+    document.getElementById('appName').value = app.name;
+    document.getElementById('appUrl').value = app.url;
+    document.getElementById('appImage').value = app.image || '';
+    formLabel.textContent = '// EDIT APP';
+    formSubmitBtn.textContent = '✓ update app';
+    cancelEditBtn.style.display = 'inline-block';
+    linkForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function resetForm(){
+    editingId = null;
+    linkForm.reset();
+    formLabel.textContent = '// ADD AN APP';
+    formSubmitBtn.textContent = '＋ add app';
+    cancelEditBtn.style.display = 'none';
+  }
+
+  cancelEditBtn.addEventListener('click', resetForm);
+
+
+  function setAdminUI(){
+    adminBadge.style.display = isAdmin ? 'inline-block' : 'none';
+    linkForm.classList.toggle('open', isAdmin);
+    document.getElementById('contactForm').classList.toggle('open', isAdmin);
+    document.body.classList.toggle('admin-on', isAdmin);
+    loginPanel.classList.remove('open');
+    adminToggleBtn.textContent = isAdmin ? 'Log out' : 'Admin';
+    resetForm();
+    renderApps();
+    renderContact();
+  }
+
+  adminToggleBtn.addEventListener('click', () => {
+    if(isAdmin){
+      isAdmin = false;
+      sessionStorage.removeItem('protolab_admin');
+      setAdminUI();
+    } else {
+      loginPanel.classList.toggle('open');
+    }
+  });
+
+  loginSubmit.addEventListener('click', () => {
+    if(adminPass.value === ADMIN_PASSWORD){
+      isAdmin = true;
+      sessionStorage.setItem('protolab_admin', 'true');
+      loginError.style.display = 'none';
+      adminPass.value = '';
+      setAdminUI();
+    } else {
+      loginError.style.display = 'block';
+    }
+  });
+  adminPass.addEventListener('keydown', e => { if(e.key === 'Enter') loginSubmit.click(); });
+
+  linkForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('appName').value.trim();
+    const url = document.getElementById('appUrl').value.trim();
+    const image = document.getElementById('appImage').value.trim();
+    if(!name || !url) return;
+    const apps = loadApps();
+
+    if(editingId !== null){
+      const target = apps.find(a => String(a.id) === String(editingId));
+      if(target){
+        target.name = name;
+        target.url = url;
+        target.image = image;
+      }
+    } else {
+      apps.unshift({ id: Date.now(), name, url, image, downloads: 0 });
+    }
+
+    saveApps(apps);
+    resetForm();
+    renderApps();
+  });
+
+  document.getElementById('contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const c = {
+      name: document.getElementById('cName').value.trim() || DEFAULT_CONTACT.name,
+      email: document.getElementById('cEmail').value.trim() || DEFAULT_CONTACT.email,
+      github: document.getElementById('cGithub').value.trim() || DEFAULT_CONTACT.github,
+      twitter: document.getElementById('cTwitter').value.trim() || DEFAULT_CONTACT.twitter
+    };
+    saveContact(c);
+    renderContact();
+  });
+
+  setAdminUI();
+
+  // --- Typewriter effect for hero terminal line ---
+  const typedTextEl = document.getElementById('typedText');
+  const fullText = "App created with one prompt input and in one minute... I hope you love it and have fun!";
+  let typeIndex = 0;
+
+  function typeNextChar(){
+    if(typeIndex <= fullText.length){
+      typedTextEl.textContent = fullText.slice(0, typeIndex);
+      typeIndex++;
+      setTimeout(typeNextChar, 45);
+    }
+  }
+  typeNextChar();
+</script>
+
+</body>
+</html>
